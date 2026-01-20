@@ -1,5 +1,5 @@
 import streamlit as st
-from backend import workflow
+from backend import chatbot
 from langchain_core.messages import HumanMessage
 
 CONFIG = {'configurable': {'thread_id': '1'}}
@@ -34,11 +34,18 @@ if user_input:
     with st.chat_message('user'):
         st.text(user_input)
 
-    response = workflow.invoke({'messages': HumanMessage(content= user_input)}, config= CONFIG)
-    ai_message = response['messages'][-1].content
 
-    st.session_state['message_history'].append({'role':'assistant', 'content': ai_message})
     with st.chat_message('assistant'):
-        st.text(ai_message)
+
+        ai_message = st.write_stream(
+        message_chunk.content for message_chunk, meta_data in chatbot.stream(
+            input={'messages': HumanMessage(content= user_input)},
+            config= CONFIG,
+            stream_mode= "messages"
+            )
+    
+        )
+
+        st.session_state['message_history'].append({'role': 'assistant', 'content': ai_message})
 
 
